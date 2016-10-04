@@ -12,6 +12,9 @@ module.exports = function(sequelize, DataTypes) {
     instanceMethods: {
       isCompleted: function() {
         return !!this.completedAt;
+      },
+      markCompleted: function() {
+        return this.updateAttributes({completedAt: sequelize.fn('NOW')});
       }
     }
   });

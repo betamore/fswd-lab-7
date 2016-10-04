@@ -3,14 +3,60 @@ import bootstrap from 'bootstrap';
 import 'bootstrap/css/bootstrap.css!';
 import 'bootstrap/css/bootstrap-theme.css!'
 import angular from 'angular';
+import _ from 'lodash';
 
 // Make jquery available in the console
 window.$ = $;
 
 $('body').show();
 
+angular.module('fswd', [])
+  .service('TodoListService', function($http) {
+    var todoList = ['Groceries', 'Dinner', 'Breakfast'];
+
+    this.retrieveTodoList = function() {
+      return $http.get('/tasks')
+        .then(function(response) {
+          todoList = response.data;
+        });
+    };
+
+    this.getTodoList = function() {
+      return todoList;
+    };
+
+    this.removeTodo = function(item) {
+      todoList = _.without(todoList, item);
+    };
+
+    this.addTodo = function(toAdd) {
+      todoList = todoList.concat([ toAdd ]);
+    };
+
+  })
+  .controller('TodoListController', function(TodoListService, $scope) {
+    var vm = this;
+    TodoListService.retrieveTodoList();
+
+    vm.removeTodo = function(item) {
+      TodoListService.removeTodo(item);
+    };
+
+    vm.addTodo = function(toAdd) {
+      TodoListService.addTodo(toAdd);
+    };
+
+    $scope.$watch(function() {
+      console.log('Watching the todo list!');
+      return TodoListService.getTodoList();
+    }, function(newVal, oldVal) {
+      vm.todoList = newVal;
+    });
+
+  });
+
 angular.element(document).ready(function() {
-  angular.bootstrap(angular.element(document));
+  angular.bootstrap(angular.element(document), ['fswd']);
   // this must be a bug of some kind
   // TODO: Dig into this
   angular.resumeBootstrap([]);
